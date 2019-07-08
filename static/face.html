@@ -1,0 +1,96 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>tracking.js - first tracking</title>
+  <style>
+    .rect {
+      position: absolute;
+      border:  1px solid red;
+      color: red;
+      width: 80px;
+      height: 80px;
+      left: -1000px;
+      top: -1000px;
+      /* background: #67C23A;
+      opacity: 0.2; */
+    }
+  </style>
+  <script src="./tracking-min.js"></script>
+  <script src="./face.js"></script>
+</head>
+<body>
+  请保持在镜头中一段时间直到方框变为绿色
+  <div id="wapper" style="position: relative">
+    <div class="rect"></div>
+    <video id="myVideo" width="640" height="360"></video>
+  </div>
+  <canvas id="canvas" width="320" height="240" style="position: absolute" ></canvas>
+  <script>
+    function success(stream) {
+      //兼容webkit核心浏览器
+      let CompatibleURL = window.URL || window.webkitURL;
+      //将视频流设置为video元素的源
+      console.log(stream);
+      let video = document.getElementById('myVideo')
+      //video.src = CompatibleURL.createObjectURL(stream);
+      video.srcObject = stream;
+      video.play();
+    }
+
+    function error(error) {
+      alert("访问用户媒体设备失败"+error);
+      console.log(`访问用户媒体设备失败${error.name}, ${error.message}`);
+    }
+
+    navigator.mediaDevices.getUserMedia({video : {width: 1280, height: 720}}).then(success).catch(error);
+    // var colors = new tracking.ColorTracker(['magenta', 'cyan', 'yellow']);
+    var colors = new tracking.ObjectTracker(['face']);
+
+
+    const rectDom = document.querySelector('.rect');
+    const targetTime = 1000; //持续监测到人脸一段时间则判断成功
+    var flag = true;
+
+    var detected = false;
+    var timer = 0;
+    setInterval(() => {
+      if (!detected && rectDom.style.left != "-1000px"){
+        lastDetected = false;
+        console.log("没有检测到目标")
+        timer = 0;
+        rectDom.style["border"] = '1px solid red';
+        rectDom.style.left = "-1000px";
+      }else{
+        detected = false;
+      }
+    }, 150);
+    colors.on('track', function(event) {
+      if (event.data.length === 0) {
+        // No colors were detected in this frame.
+      } else {
+        event.data.forEach(function(rect) {
+          if(rectDom.style){
+            // console.log(rect.x, rect.y, rect.height, rect.width, rect.color);
+            if (rectDom.style.left == "-1000px"){
+              console.log("检测到目标")
+              timer = new Date().getTime();
+            }
+            if(rectDom.style["border"] != '2px solid aquamarine' && new Date().getTime()- timer > targetTime){
+              console.log("检测成功")
+              rectDom.style["border"] = '2px solid aquamarine';
+            }
+            detected = true;
+            rectDom.style.left = (rect.x-20)+"px";
+            rectDom.style.top = (rect.y-20)+"px";
+            rectDom.style.width = (rect.width+20)+"px";
+            rectDom.style.height = (rect.height+20)+"px";
+          }
+        });
+      }
+    });
+
+    tracking.track('#myVideo', colors);
+  </script>
+</body>
+</html>
