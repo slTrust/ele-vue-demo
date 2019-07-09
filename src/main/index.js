@@ -30,8 +30,9 @@ function createWindow () {
     mainWindow = null
   })
 }
+let subWindow;
 ipcMain.on('newWindow',(event,message)=>{
-  let subWindow = new BrowserWindow({
+  subWindow = new BrowserWindow({
     height: 400,
     width: 800,
     useContentSize: true,
@@ -51,6 +52,7 @@ ipcMain.on('newWindow',(event,message)=>{
     subWindow.send('msg','info from main:'+message);
   })
   subWindow.on('closed', () => {
+    subWindow = null;
     mainWindow.send('subwindow-closed');
   })
 })
