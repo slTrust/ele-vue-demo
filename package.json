@@ -17,6 +17,9 @@
     "postinstall": ""
   },
   "build": {
+    "electronDownload": {
+      "mirror": "https://npm.taobao.org/mirrors/electron/"
+    },
     "productName": "ele-vue-demo",
     "appId": "io.github.lzlz000",
     "directories": {

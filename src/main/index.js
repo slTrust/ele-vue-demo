@@ -21,12 +21,17 @@ function createWindow () {
   mainWindow = new BrowserWindow({
     height: 563,
     useContentSize: true,
-    frame: false,
-    width: 1000
+    autoHideMenuBar:true,
+    width: 1000,
+    show: false,
   })
 
   mainWindow.loadURL(winURL)
-
+  mainWindow.on('ready-to-show',()=>{
+    console.log(111)
+    mainWindow.show();
+    // mainWindow.send('router',{path:'/entry'});
+  })
   mainWindow.on('closed', () => {
     mainWindow = null
   })
@@ -39,6 +44,7 @@ ipcMain.on('newWindow',(event,message)=>{
     useContentSize: true,
     show: false,
     autoHideMenuBar:true,
+    frame: false,
     parent: mainWindow
   })
   // console.log(winURL+"/#/sub") //开发和构件时路由方式不同，不能用这个

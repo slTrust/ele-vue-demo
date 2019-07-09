@@ -5,7 +5,7 @@
     <system-information></system-information>
     <!-- <router-view></router-view> -->
     <el-button @click="newWindow" :disabled="isOpened">新窗口</el-button>
-    <router-link to="/sub">sub</router-link>
+    <!-- <router-link to="/sub">sub</router-link> -->
     <router-link to="/entry">entry</router-link>
       
   </div>

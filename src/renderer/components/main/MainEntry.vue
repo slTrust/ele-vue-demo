@@ -1,5 +1,5 @@
 <template>
-  <div class="main-entry" style="-webkit-app-region: drag">
+  <div class="main-entry">
     <div class="entry" v-for="(item, index) in entries" :key="'entry'+index">
       <el-button>{{item.name}}</el-button>
     </div>
