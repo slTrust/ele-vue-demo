@@ -25,6 +25,10 @@ let mainConfig = {
       {
         test: /\.node$/,
         use: 'node-loader'
+      },
+      {
+        test: /\\\\\\\\.(eot|woff|woff2|ttf)([\\\\\\\\?]?.*)$/,
+        loader: "file"
       }
     ]
   },

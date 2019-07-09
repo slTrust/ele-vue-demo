@@ -27,6 +27,11 @@
   </div>
   <canvas id="canvas" width="320" height="240" style="position: absolute" ></canvas>
   <script>
+    
+
+    const rectDom = document.querySelector('.rect');
+    const targetTime = 1000; //持续监测到人脸一段时间则判断成功
+
     function success(stream) {
       //兼容webkit核心浏览器
       let CompatibleURL = window.URL || window.webkitURL;
@@ -36,35 +41,34 @@
       //video.src = CompatibleURL.createObjectURL(stream);
       video.srcObject = stream;
       video.play();
+      setInterval(() => {
+        if (!detected && rectDom.style.left != "-1000px"){
+          lastDetected = false;
+          console.log("没有检测到目标")
+          timer = 0;
+          rectDom.style["border"] = '1px solid red';
+          rectDom.style.left = "-1000px";
+        }else{
+          detected = false;
+        }
+      }, 150);
     }
 
-    function error(error) {
-      alert("访问用户媒体设备失败"+error);
-      console.log(`访问用户媒体设备失败${error.name}, ${error.message}`);
+    function errorHandler(error) {
+      if(error.name == 'NotFoundError'){
+        alert("没有检测到摄像头");
+      }else{
+        alert("访问用户媒体设备失败"+error);
+        console.log(`访问用户媒体设备失败${error.name}, ${error.message}`);
+      }
     }
 
-    navigator.mediaDevices.getUserMedia({video : {width: 1280, height: 720}}).then(success).catch(error);
+    navigator.mediaDevices.getUserMedia({video : {width: 1280, height: 720}}).then(success).catch(errorHandler);
     // var colors = new tracking.ColorTracker(['magenta', 'cyan', 'yellow']);
     var colors = new tracking.ObjectTracker(['face']);
 
-
-    const rectDom = document.querySelector('.rect');
-    const targetTime = 1000; //持续监测到人脸一段时间则判断成功
-    var flag = true;
-
     var detected = false;
     var timer = 0;
-    setInterval(() => {
-      if (!detected && rectDom.style.left != "-1000px"){
-        lastDetected = false;
-        console.log("没有检测到目标")
-        timer = 0;
-        rectDom.style["border"] = '1px solid red';
-        rectDom.style.left = "-1000px";
-      }else{
-        detected = false;
-      }
-    }, 150);
     colors.on('track', function(event) {
       if (event.data.length === 0) {
         // No colors were detected in this frame.
