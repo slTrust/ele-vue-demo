@@ -1,5 +1,4 @@
 import { app, BrowserWindow,ipcMain,Menu } from 'electron'
-
 /**
  * Set `__static` path to static files in production
  * https://simulatedgreg.gitbooks.io/electron-vue/content/en/using-static-assets.html
@@ -7,6 +6,7 @@ import { app, BrowserWindow,ipcMain,Menu } from 'electron'
 if (process.env.NODE_ENV !== 'development') {
   global.__static = require('path').join(__dirname, '/static').replace(/\\/g, '\\\\')
 }
+console.log(BrowserWindow)
 
 Menu.setApplicationMenu(null);
 let mainWindow
@@ -36,33 +36,70 @@ function createWindow () {
     mainWindow = null
   })
 }
+let subWindosMaps = {};
 let subWindow;
-ipcMain.on('newWindow',(event,message)=>{
-  subWindow = new BrowserWindow({
-    height: 400,
-    width: 800,
-    useContentSize: true,
-    show: false,
-    autoHideMenuBar:true,
-    // frame: false, // 这样子窗口有头部 可以关闭和放大 缩小
-    parent: mainWindow
-  })
-  // console.log(winURL+"/#/sub") //开发和构件时路由方式不同，不能用这个
-  subWindow.loadURL(winURL);
-  subWindow.on('ready-to-show',()=>{
-    subWindow.show();
-    subWindow.send('router',{path:'/sub'});
-  })
-  ipcMain.on('sub-ready', () => {
-    
-    console.log('sub-ready',message);
-    subWindow.send('msg','info from main:'+message);
-  })
-  subWindow.on('closed', () => {
-    subWindow = null;
-    mainWindow.send('subwindow-closed');
-  })
+ipcMain.on('newWindow',(event,payload)=>{
+    subWindow = new BrowserWindow({
+        height: 400,
+        width: 800,
+        // useContentSize: true,
+        show: false,
+        // autoHideMenuBar:true,
+        // frame: false, // 这样子窗口有头部 可以关闭和放大 缩小
+        parent: mainWindow
+    })
+    // console.log(winURL+"/#/sub") //开发和构件时路由方式不同，不能用这个
+    subWindow.loadURL(winURL);
+    subWindow.on('ready-to-show',()=>{
+        subWindow.show();
+        subWindow.setTitle(payload.id)
+        subWindow.send('router',{path:'/sub'+'/'+payload.id});
+        // 缓存这个 subWindow到map里
+        subWindosMaps[payload.id] = subWindow;
+    })
+
+    // 子窗口挂载了
+    ipcMain.on('sub-ready', () => {
+        console.log('sub-ready',payload);
+        subWindow.send('msg',payload);
+    })
+
+    subWindow.on('focus', () => {
+        for(var key in subWindosMaps){
+            let subWin = subWindosMaps[key];
+            subWin.setAlwaysOnTop(false);
+        }
+        subWindow.setAlwaysOnTop(true);
+    })
+
+    subWindow.on('closed', () => {
+        // 注销所有事件监听
+        subWindow = null;
+        mainWindow.send('subwindow-closed',{...payload,msg:"这是子窗口关闭时发来的消息"});
+        delete subWindosMaps[payload.id]
+        console.log('closed' + payload.id)
+    })
 })
+
+// 子窗口的消息监听
+ipcMain.on('sub-to-main',(a,b)=>{
+    // process的 console是在 控制台里
+    console.log(b);
+    mainWindow.send('sub-to-main',b);
+})
+
+ipcMain.on('main-to-sub',(a,b)=>{
+    console.log(b);
+    for(var key in subWindosMaps){
+      let subWin = subWindosMaps[key];
+      if(subWin){
+          subWin.send && subWin.send('main-to-sub',b);
+      }
+    }
+})
+
+
+
 
 app.on('ready', createWindow)
 
