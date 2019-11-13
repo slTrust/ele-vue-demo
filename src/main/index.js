@@ -44,7 +44,7 @@ ipcMain.on('newWindow',(event,message)=>{
     useContentSize: true,
     show: false,
     autoHideMenuBar:true,
-    frame: false,
+    // frame: false, // 这样子窗口有头部 可以关闭和放大 缩小
     parent: mainWindow
   })
   // console.log(winURL+"/#/sub") //开发和构件时路由方式不同，不能用这个
